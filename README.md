@@ -189,7 +189,7 @@ Now start the runbook again using the same steps as before and watch the output
 
 This time, we should see that the current time doesn’t match any shutdown schedules for the VM or group, and see the runbook report that it would have started the intended VMs.
 
-### Troubleshooting
+## Troubleshooting
 To check for problems, you can inspect the runbook job history to look at the output and streams / history for each individual job. In the new portal, the output view doesn't necessarily show error details, so make sure to check the Streams view as well.
 
 ## Automation Account Configuration
