@@ -93,3 +93,70 @@ You need to add these modules to your Automation account, do not add all Az modu
   - Az.KeyVault
   - Az.Profile
   - Az.Resources
+
+# Setting it up in Azure
+Now we’ll go through the steps to get this working in your subscription. It will be beer thirty before you know it.
+
+## Prerequisites
+This is an Azure Automation runbook, and as such you’ll need the following to use it:
+  - Microsoft Azure [subscription](http://azure.microsoft.com/) (including trial subscriptions)
+  - Azure Automation account created in subscription ([instructions](https://docs.microsoft.com/en-us/azure/automation/automation-create-standalone-account))
+  - Runbook file downloaded from this page
+
+## Import Runbook
+The runbook is contained in the file "AutoShutdownSchedule.ps1" within the download. You can import this into your Automation Account like so:
+- Open subscription in [Azure portal](https://portal.azure.com)
+- Open the Automation Account which will contain the runbook
+- Open the **Runbooks** view from the Resources section
+- Click **Add a runbook** from the top menu
+- Select **Import an existing runbook**
+- Click **Create to upload**
+- Confirm "AutoShutdownSchedule" now appears in the runbooks list
+- Open the runbook from the list
+- Click **Edit** from the top menu
+- Click **Publish** from the top menu and confirm
+- Confirm the runbook now shows a status of **Published**
+
+## Create Credential Asset
+When the runbook executes, it accesses your subscription with credentials you configure. By default, it looks for a credential named "Default Automation Credential". This is for a user you create in your subscription's Azure Active Directory which is granted permissions to manage subscription resources, e.g. as a co-administrator. The steps:
+
+- Create an Azure Active Directory user for runbook use if you haven’t already. This account will be the "service account" for the runbook and **must be a co-administrator** in the target subscription.
+- Open subscription in [Azure portal](https://portal.azure.com)
+- Open the **Automation Account** which will contain the runbook
+- Open the **Assets** view from the resources section
+- Open the **Credentials** view
+- Click Add a credential from the top menu
+- Enter details for the new credential. Recommended to use name "**Default Automation Credential**".
+- Click **Create**
+
+## Create Variables for Subscription Name and time zone
+The runbook also needs to know which subscription to connect to when it runs. In theory, a runbook can connect to any subscription, so we must specify one in particular. This is easily done by setting up a variable in our automation account.
+- Open subscription in [Azure portal](https://portal.azure.com)
+- Note your target subscription name as shown in Browse > Subscriptions
+- Open the Automation Account which will contain the runbook
+- Open the **Assets** view from the resources section
+- Open the **Variables** view
+- Click **Add a variable** from the top menu
+- Give the variable a name ("**Default Azure Subscription**" expected by default), and enter the subscription name as the variable’s value. Click **Create**.
+- Click **Add a variable** from the top menu again
+- Give the variable a name ("**Default Time Zone**" expected by default), and enter the time zone name as the variable’s value, for example "W. Europe Standard Time". Use the Powershell command `Get-TimeZone -ListAvailable` to see all recognized time zones.  Click **Create**.
+
+## Schedule the Runbook
+The runbook should be scheduled to run periodically. As previously discussed, this does not determine the power on/power off schedule. It only determines how often the power schedules on resources are checked. Azure allows up to an hourly frequency, so we’ll take advantage of that:
+- Back in the runbooks list, open the new runbook "Asset-AutoShutdownSchedule"
+- Open the **Schedules view** under details
+- Click **Add a schedule** in top menu
+- Click **Link a schedule** to your runbook
+- Click **Create a new schedule**
+- Provide a name like "Hourly Runbook Schedule"
+- Set the start time to time you want to first run, e.g. the next upcoming hour mark
+- Set **Recurrence** to Hourly
+- Click **Create**
+- (Optional) If you want to provide a credential or subscription name directly and didn’t use the default names, click **Configure** your runbook parameters
+- (Optional) Enter the name of the credential asset the runbook should use
+- (Optional) Enter the name of the subscription the runbook should use
+- Click **OK** to close the open dialogs
+- Confirm the schedule now appears in the list with status **Enabled**
+
+The runbook will now run every hour and perform power actions as indicated by the tags on resource groups and virtual machines in your subscription.
+
