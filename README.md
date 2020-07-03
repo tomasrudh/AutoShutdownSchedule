@@ -75,3 +75,21 @@ If the current time matches any of the schedules, the runbook concludes that thi
 If the tag contains a single time value, will the machine be turned off at that time. It will not be turned on at other times.
 
 If any of the defined schedules can’t be parsed (PowerShell doesn’t understand “beer thirty”), it will ignore that and treat whatever was intended as online time. Therefore, **the default failsafe behavior is to keep VMs online** or start them, not shut them down.
+
+## Runbook Logs
+Various output messages are recorded by the runbook every time it runs, indicating what actions were taken and whether any errors occurred in processing tags or accessing the subscription. These logs can be found in the output of each job.
+
+## Performance
+Startup and shutdown are done in parallell. The machines are started in alphabetical order by their names.
+
+## Testing
+To test the runbook without actually starting or stopping your VMs, you can use the "Simulate" option. If true, the schedules will be evaluated but no power actions will be taken. You can then see whether everything would have worked as you expect before setting up the runbook to run live (runbook runs live by default).
+
+## Azure Modules
+
+You need to add these modules to your Automation account, do not add all Az modules.
+  - Az.Accounts
+  - Az.Compute
+  - Az.KeyVault
+  - Az.Profile
+  - Az.Resources
