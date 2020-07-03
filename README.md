@@ -160,3 +160,40 @@ The runbook should be scheduled to run periodically. As previously discussed, th
 
 The runbook will now run every hour and perform power actions as indicated by the tags on resource groups and virtual machines in your subscription.
 
+## Configure Shutdown Schedule Tags
+Finally, we need to tag our VM resource groups. The tag format was discussed above. To create schedule tags:
+- Open subscription in [Azure portal](https://portal.azure.com)
+- Navigate to **Browse > Resource Groups**, and open a resource group that contains VMs to schedule
+- Click the tag icon in the upper right
+- In the **Key** field, enter "AutoShutdownSchedule"
+- In the **Value** field, enter a schedule as discussed above, such as "10PM -> 6AM"
+- Click **Save** in the top menu
+
+After repeating this process for each VM resource group in your subscription, everything is set to automatically shut down and start up your virtual machines. Going forward, you can simply update the tag as needed to adjust the schedule, and add a tag to new resource groups that require a shutdown schedule. Remember, VMs in untagged resource groups will not be managed by the runbook.
+
+## Initial Testing
+To validate that the runbook works, we can run an initial test manually and inspect the results. This is easy:
+- Assign a shutdown schedule tag to the VM or resource group you want to use for testing. Give it a schedule the covers the current time. The easiest way is to just use today’s day of the week, e.g. "Wednesday".
+- Start the test VM(s)
+- In the runbook view under your automation account, click the **Start** button from the top menu.
+- Verify the parameters are correct if you opted not to use the defaults. Set **Simulation** to True in order to test without making changes. Verify **Run** on Azure is selected and click **OK**
+- Open the **Output** view, and wait for the runbook to execute. It takes a minute or two to queue and run.
+
+At this point, we hope to see messages in the output telling us a tagged VM or resource group was found, that the current time is within a shutdown schedule, and that the intended VMs would have been stopped in a normal execution. Any errors that occur should also be recorded in the output.
+
+Now, test the opposite case: starting VMs that should be running according to the schedule (if they aren’t in an explicitly-defined shutdown period, they should be started). So, we can update our schedule tag and test again as follows:
+
+Go back to the test VM or resource group and set the AutoShutdownSchedule such that it doesn’t cover the current time. For example, if today is Wednesday, set the tag value to "Tuesday". Setting the tag again and saving overwrites any existing tag with the same name. (Hint: you can use the dropdown to select previous tag keys and values).
+
+Now start the runbook again using the same steps as before and watch the output
+
+This time, we should see that the current time doesn’t match any shutdown schedules for the VM or group, and see the runbook report that it would have started the intended VMs.
+
+### Troubleshooting
+To check for problems, you can inspect the runbook job history to look at the output and streams / history for each individual job. In the new portal, the output view doesn't necessarily show error details, so make sure to check the Streams view as well.
+
+## Automation Account Configuration
+Before putting this runbook into production where you count on it to reliably manage your VM power state, I recommend configuring your automation account as a “Basic” rather than a free account. This ensures that the 500 minute monthly run time limitation will not be hit and prevent the runbooks from working. The cost is extremely low for additional minutes, so the few extra dollars, if any, will easily be offset by the compute time savings.
+
+This can be changed in the "Pricing Tier" view under the automation account in the portal at [Azure portal](https://portal.azure.com)
+
