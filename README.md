@@ -196,4 +196,3 @@ To check for problems, you can inspect the runbook job history to look at the ou
 Before putting this runbook into production where you count on it to reliably manage your VM power state, I recommend configuring your automation account as a “Basic” rather than a free account. This ensures that the 500 minute monthly run time limitation will not be hit and prevent the runbooks from working. The cost is extremely low for additional minutes, so the few extra dollars, if any, will easily be offset by the compute time savings.
 
 This can be changed in the "Pricing Tier" view under the automation account in the portal at [Azure portal](https://portal.azure.com)
-
