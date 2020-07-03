@@ -39,13 +39,16 @@
     .EXAMPLE
         For testing examples, see the documentation at:
 
-        https://automys.com/library/asset/scheduled-virtual-machine-shutdown-startup-microsoft-azure
+        https://github.com/tomasrudh/AutoShutdownSchedule
     
     .INPUTS
         None.
 
     .OUTPUTS
         Human-readable informational and error messages produced during the job. Not intended to be consumed by another runbook.
+
+    .CREDITS
+        The script was originally created by Automys, https://automys.com/library/asset/scheduled-virtual-machine-shutdown-startup-microsoft-azure
 #>
 
 param(
