@@ -2,6 +2,28 @@
 
 ## Table of Contents
 - [Why use This](https://github.com/tomasrudh/AutoShutdownSchedule#why-use-this)
+- [Credits](https://github.com/tomasrudh/AutoShutdownSchedule#credits)
+- [What it does](https://github.com/tomasrudh/AutoShutdownSchedule#what-it-does)
+- [Tag-based power schedule](https://github.com/tomasrudh/AutoShutdownSchedule#tag-based-power-schedules)
+- [Tag content](https://github.com/tomasrudh/AutoShutdownSchedule#tag-content)
+  - [Get to know datetime](https://github.com/tomasrudh/AutoShutdownSchedule#get-to-know-datetime)
+- [Schedule tag examples](https://github.com/tomasrudh/AutoShutdownSchedule#schedule-tag-examples)
+- [What the runbook does](https://github.com/tomasrudh/AutoShutdownSchedule#what-the-runbook-does)
+- [Runbook logs](https://github.com/tomasrudh/AutoShutdownSchedule#runbook-logs)
+- [Performance](https://github.com/tomasrudh/AutoShutdownSchedule#performance)
+- [Testing](https://github.com/tomasrudh/AutoShutdownSchedule#testing)
+- [Azure modules](https://github.com/tomasrudh/AutoShutdownSchedule#azure-modules)
+- [Setting it up in Azure](https://github.com/tomasrudh/AutoShutdownSchedule#setting-it-up-in-azure)
+  - [Prerequisites](https://github.com/tomasrudh/AutoShutdownSchedule#prerequisites)
+  - [Import runbook](https://github.com/tomasrudh/AutoShutdownSchedule#import-runbook)
+  - [Create credential asset](https://github.com/tomasrudh/AutoShutdownSchedule#create-credential-asset)
+  - [Create variables for subscription name and time zone](https://github.com/tomasrudh/AutoShutdownSchedule#create-variables-for-subscription-name-and-time-zone)
+  - [Schedule the runbook](https://github.com/tomasrudh/AutoShutdownSchedule#schedule-the-runbook)
+  - [Configure shutdown schedule tags](https://github.com/tomasrudh/AutoShutdownSchedule#configure-shutdown-schedule-tags)
+  - [Initial testing](https://github.com/tomasrudh/AutoShutdownSchedule#initial-testing)
+  - [Troubleshooting](https://github.com/tomasrudh/AutoShutdownSchedule#troubleshooting)
+  - [Automation account configuration](https://github.com/tomasrudh/AutoShutdownSchedule#automation-account-configuration)
+  
 
 ## Why Use This?
 Money! The largest share of Azure subscription costs when using Virtual Machines (IaaS) is the compute time: how many hours the VMs are running per month. If you have VMs that can be stopped during certain time periods, you can reduce the bill by turning them off (and “deallocating” them).
