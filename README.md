@@ -1,5 +1,8 @@
 # Scheduled Virtual Machine Shutdown/Startup - Microsoft Azure
 
+## Table of Contents
+- [Why use This](https://github.com/tomasrudh/AutoShutdownSchedule#why-use-this)
+
 ## Why Use This?
 Money! The largest share of Azure subscription costs when using Virtual Machines (IaaS) is the compute time: how many hours the VMs are running per month. If you have VMs that can be stopped during certain time periods, you can reduce the bill by turning them off (and “deallocating” them).
 
