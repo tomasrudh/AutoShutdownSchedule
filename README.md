@@ -16,6 +16,8 @@ The runbook is intended to run on a schedule in an Azure Automation account, wit
 
 Once the runbook is in place and scheduled, the only configuration required can be done through simple tagging of resources, and the runbook will implement whatever power schedules it finds during its next scheduled run. Think of this as a quick and basic power management scheduling solution for your Azure virtual machines.
 
+This runbook do only handle RM virtual machines and not classic.
+
 ## Tag-based Power Schedules
 If our goal is to manage the times that our virtual machines are shut down and powered on, we need a way to define this schedule. For example, perhaps we want to shut down our VMs after close of business and have them start up before people arrive in the office in the morning. But we also might want them shut down all weekend, not just at night. And what about holidays? Clearly, we also need an approach that allows some flexibility to get granular with scheduling.
 
@@ -90,8 +92,6 @@ To test the runbook without actually starting or stopping your VMs, you can use 
 You need to add these modules to your Automation account, do not add all Az modules.
   - Az.Accounts
   - Az.Compute
-  - Az.KeyVault
-  - Az.Profile
   - Az.Resources
 
 # Setting it up in Azure
