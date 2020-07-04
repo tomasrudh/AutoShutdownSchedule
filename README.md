@@ -161,6 +161,8 @@ When the runbook executes, it accesses your subscription with credentials you co
 - Enter details for the new credential. Recommended to use name "**Default Automation Credential**".
 - Click **Create**
 
+![Credential](images/Credential.png)
+
 ## Create Variables for Subscription Name and time zone
 The runbook also needs to know which subscription to connect to when it runs. In theory, a runbook can connect to any subscription, so we must specify one in particular. This is easily done by setting up a variable in our automation account.
 - Open subscription in [Azure portal](https://portal.azure.com)
@@ -189,6 +191,8 @@ The runbook should be scheduled to run periodically. As previously discussed, th
 - (Optional) Enter the name of the subscription the runbook should use
 - Click **OK** to close the open dialogs
 - Confirm the schedule now appears in the list with status **Enabled**
+
+![Schedule](images/Schedule.png)
 
 The runbook will now run every hour and perform power actions as indicated by the tags on resource groups and virtual machines in your subscription.
 
