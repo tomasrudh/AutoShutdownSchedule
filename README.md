@@ -24,6 +24,7 @@
   - [Troubleshooting](https://github.com/tomasrudh/AutoShutdownSchedule#troubleshooting)
   - [Automation account configuration](https://github.com/tomasrudh/AutoShutdownSchedule#automation-account-configuration)
   
+![Result](images/Output.png)
 
 ## Why Use This?
 Money! The largest share of Azure subscription costs when using Virtual Machines (IaaS) is the compute time: how many hours the VMs are running per month. If you have VMs that can be stopped during certain time periods, you can reduce the bill by turning them off (and “deallocating” them).
@@ -52,6 +53,8 @@ When you think about it, the power schedule applies to the resource, not to the 
 
 So what does it look like? We simply apply a tag to a virtual machine or an Azure resource group that contains VMs. This tag is a simple string that describes the times the VM should be shut down.
 
+![Result](images/TagExample.png)
+
 ## Tag Content
 The runbook looks for a tag named “AutoShutdownSchedule” assigned to a virtual machine or resource group containing VMs. The value of this tag is one or more schedule entries, or time ranges, defining when VMs should be shut down. By implication, any times not defined in the shutdown schedule are times the VM should be online. So, each time the runbook checks the current time against the schedule, it makes sure the VM is powered on or off accordingly.
 
@@ -65,6 +68,8 @@ Time only: the hour the machine should be shut down, the time has to be the only
 
 ### Get to Know DateTime
 All times must be strings that can be successfully parsed as “DateTime” values. In other words, PowerShell must be able to look at the text value you provide and say “OK, I know how to interpret that as a specific date/time”. There is a surprising amount of flexibility allowed, and the easiest way to verify your choice is to open a PowerShell prompt and try the command `Get-Date '<time text>'`, and see what happens. If PowerShell spits out a formatted timestamp, that’s good. If it complains that it doesn’t know what you mean, try writing the time differently.
+
+![Result](images/GetDate.png)
 
 ## Schedule Tag Examples
 The easiest way to write the schedule is to say it first in words as a list of times the VM should be shut down, then translate that to the string equivalent. Remember, any time period not defined as a shutdown time is online time, so the runbook will start the VMs accordingly. Let’s look at some examples:
@@ -111,6 +116,8 @@ Startup and shutdown are done in parallell. The machines are started in alphabet
 
 ## Testing
 To test the runbook without actually starting or stopping your VMs, you can use the "Simulate" option. If true, the schedules will be evaluated but no power actions will be taken. You can then see whether everything would have worked as you expect before setting up the runbook to run live (runbook runs live by default).
+
+![Result](images/Simulate.png)
 
 ## Azure Modules
 
