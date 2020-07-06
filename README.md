@@ -112,7 +112,7 @@ If any of the defined schedules can’t be parsed (PowerShell doesn’t understa
 Various output messages are recorded by the runbook every time it runs, indicating what actions were taken and whether any errors occurred in processing tags or accessing the subscription. These logs can be found in the output of each job.
 
 ## Performance
-Startup and shutdown are done in parallell. The machines are started in alphabetical order by their names.
+Startup and shutdown are done in parallel. The machines are started in alphabetical order by their names.
 
 ## Testing
 To test the runbook without actually starting or stopping your VMs, you can use the "Simulate" option. If true, the schedules will be evaluated but no power actions will be taken. You can then see whether everything would have worked as you expect before setting up the runbook to run live (runbook runs live by default).
