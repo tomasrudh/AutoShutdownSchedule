@@ -16,7 +16,7 @@
 
         For detailed documentation and instructions, see: 
         
-        https://automys.com/library/asset/scheduled-virtual-machine-shutdown-startup-microsoft-azure
+        https://github.com/tomasrudh/AutoShutdownSchedule
 
         Valid tags:
         19:00->08:00            Turned off between 19 and 08
