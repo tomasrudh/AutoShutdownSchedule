@@ -152,7 +152,7 @@ The runbook is contained in the file "AutoShutdownSchedule.ps1" within the downl
 ## Create Credential Asset
 When the runbook executes, it accesses your subscription with credentials you configure. By default, it looks for a credential named "Default Automation Credential". This is for a user you create in your subscription's Azure Active Directory which is granted permissions to manage subscription resources, e.g. as a co-administrator. The steps:
 
-- Create an Azure Active Directory user for runbook use if you haven’t already. This account will be the "service account" for the runbook and **must be a co-administrator** in the target subscription.
+- Create an Azure Active Directory user for runbook use if you haven’t already. This account will be the "service account" for the runbook and **must be a Virtual Machine Contributor** in the target subscription.
 - Open subscription in [Azure portal](https://portal.azure.com)
 - Open the **Automation Account** which will contain the runbook
 - Open the **Assets** view from the resources section
