@@ -125,6 +125,7 @@ You need to add these modules to your Automation account, do not add all Az modu
   - Az.Accounts
   - Az.Compute
   - Az.Resources
+  - Az.Automation
 
 # Setting it up in Azure
 Now we’ll go through the steps to get this working in your subscription. It will be beer thirty before you know it.
@@ -133,6 +134,7 @@ Now we’ll go through the steps to get this working in your subscription. It wi
 This is an Azure Automation runbook, and as such you’ll need the following to use it:
   - Microsoft Azure [subscription](http://azure.microsoft.com/) (including trial subscriptions)
   - Azure Automation account created in subscription ([instructions](https://docs.microsoft.com/en-us/azure/automation/automation-create-standalone-account))
+    - The Automation Account has to be created with a runas account
   - Runbook file downloaded from this page
 
 ## Import Runbook
@@ -150,6 +152,9 @@ The runbook is contained in the file "AutoShutdownSchedule.ps1" within the downl
 - Confirm the runbook now shows a status of **Published**
 
 ## Create Credential Asset
+```diff
+- This section is no longer needed, the script instead uses a runas account.
+```
 When the runbook executes, it accesses your subscription with credentials you configure. By default, it looks for a credential named "Default Automation Credential". This is for a user you create in your subscription's Azure Active Directory which is granted permissions to manage subscription resources, e.g. as a co-administrator. The steps:
 
 - Create an Azure Active Directory user for runbook use if you haven’t already. This account will be the "service account" for the runbook and **must be a Virtual Machine Contributor** in the target subscription.
