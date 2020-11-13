@@ -1,3 +1,6 @@
+## 2020 13th of November
+Changed to use Automation runas account. If no runas account is defined, will the old authentication method still work.
+
 ## 2020 4th of July
 Cloned the original script from [Automys](https://automys.com/library/asset/scheduled-virtual-machine-shutdown-startup-microsoft-azure)
 
