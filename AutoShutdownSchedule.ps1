@@ -276,57 +276,69 @@ try
     }
 
     # Retrieve credential
-    write-output "Specified credential asset name: [$AzureCredentialName]"
-    if($AzureCredentialName -eq "Use *Default Automation Credential* asset")
-    {
-        # By default, look for "Default Automation Credential" asset
-        $azureCredential = Get-AutomationPSCredential -Name "Default Automation Credential"
-        if($azureCredential -ne $null)
+    Write-Output "Get the runas account"
+    $RunAsConnection = Get-AutomationConnection -Name "AzureRunAsConnection"
+    if($RunAsConnection) {
+        Write-Output ("Logging in to Azure using the runas account...")
+        Add-AzAccount -ServicePrincipal -TenantId $RunAsConnection.TenantId -ApplicationId $RunAsConnection.ApplicationId `
+            -CertificateThumbprint $RunAsConnection.CertificateThumbprint > $null
+
+    } else {
+        Write-Output "No runas account was found, trying with other ways"
+        write-output "Specified credential asset name: [$AzureCredentialName]"
+        if($AzureCredentialName -eq "Use *Default Automation Credential* asset")
         {
-		    Write-Output "Attempting to authenticate as: [$($azureCredential.UserName)]"
+            # By default, look for "Default Automation Credential" asset
+            $azureCredential = Get-AutomationPSCredential -Name "Default Automation Credential"
+            if($null -ne $azureCredential)
+            {
+                Write-Output "Attempting to authenticate as: [$($azureCredential.UserName)]"
+            }
+            else
+            {
+                throw "No automation credential name was specified, and no credential asset with name 'Default Automation Credential' was found. Either specify a stored credential name or define the default using a credential asset"
+            }
         }
         else
         {
-            throw "No automation credential name was specified, and no credential asset with name 'Default Automation Credential' was found. Either specify a stored credential name or define the default using a credential asset"
+            # A different credential name was specified, attempt to load it
+            $azureCredential = Get-AutomationPSCredential -Name $AzureCredentialName
+            if($null -eq $azureCredential)
+            {
+                throw "Failed to get credential with name [$AzureCredentialName]"
+            }
         }
-    }
-    else
-    {
-        # A different credential name was specified, attempt to load it
-        $azureCredential = Get-AutomationPSCredential -Name $AzureCredentialName
-        if($azureCredential -eq $null)
+
+        # Connect to Azure using credential asset (AzureRM)
+        $account = Connect-AzAccount -Credential $azureCredential
+
+        # Check for returned userID, indicating successful authentication
+        #if(Get-AzureAccount -Name $azureCredential.UserName)
+        if($account.Context.Account.Id -eq $azureCredential.UserName)
         {
-            throw "Failed to get credential with name [$AzureCredentialName]"
+            Write-Output "Successfully authenticated as user: [$($azureCredential.UserName)]"
         }
-    }
-
-    # Connect to Azure using credential asset (AzureRM)
-    $account = Connect-AzAccount -Credential $azureCredential
-
-    # Check for returned userID, indicating successful authentication
-    #if(Get-AzureAccount -Name $azureCredential.UserName)
-    if($account.Context.Account.Id -eq $azureCredential.UserName)
-    {
-        Write-Output "Successfully authenticated as user: [$($azureCredential.UserName)]"
-    }
-    else
-    {
-        throw "Authentication failed for credential [$($azureCredential.UserName)]. Ensure a valid Azure Active Directory user account is specified which is configured as subscription owner (modern portal) on the target subscription. Verify you can log into the Azure portal using these credentials."
-    }
+        else
+        {
+            throw "Authentication failed for credential [$($azureCredential.UserName)]. Ensure a valid Azure Active Directory user account is specified which is configured as subscription owner (modern portal) on the target subscription. Verify you can log into the Azure portal using these credentials."
+        }
+}
 
     # Validate subscription
-    $subscriptions = @(Get-AzSubscription | where {$_.Name -eq $AzureSubscriptionName -or $_.Id -eq $AzureSubscriptionName})
+    $subscriptions = @(Get-AzSubscription | Where-Object {$_.Name -eq $AzureSubscriptionName -or $_.Id -eq $AzureSubscriptionName})
     if($subscriptions.Count -eq 1)
     {
         # Set working subscription
-        $targetSubscription = $subscriptions | select -First 1
+        $targetSubscription = $subscriptions | Select-Object -First 1
         $targetSubscription | Select-AzSubscription > $null
 
-        # Connect via Azure Resource Manager 
-        $resourceManagerContext = Connect-AzAccount -Credential $azureCredential -SubscriptionId $targetSubscription.SubscriptionId
+        # Connect via Azure Resource Manager if not already done using the runas account
+        if(!$RunAsConnection) {
+            Connect-AzAccount -Credential $azureCredential -SubscriptionId $targetSubscription.SubscriptionId > $null
+        }
 
-        $currentSubscription = Get-AzSubscription
-        Write-Output "Working against subscription: $($currentSubscription.Name) ($($currentSubscription.SubscriptionId))"
+        #$currentSubscription = Get-AzSubscription
+        Write-Output "Working against subscription: $($targetSubscription.Name) ($($targetSubscription.SubscriptionId))"
     }
     else
     {
