@@ -1,7 +1,7 @@
-## 2020 30th of December
+## 3.5 2020 30th of December
 Added deallocation of machines stopped but not deallocated
 
-## 2020 4th of July
+## 3.4 2020 4th of July
 Cloned the original script from [Automys](https://automys.com/library/asset/scheduled-virtual-machine-shutdown-startup-microsoft-azure)
 
 These are the changes and enhancements made:
