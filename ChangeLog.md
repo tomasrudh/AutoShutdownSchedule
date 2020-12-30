@@ -1,5 +1,5 @@
-## 2020 19th of November
-Added the possibility to use the Automation Runas Account, but still support the credentials saved in the Automation Account
+## 2020 30th of December
+Added deallocation of machines stopped but not deallocated
 
 ## 2020 4th of July
 Cloned the original script from [Automys](https://automys.com/library/asset/scheduled-virtual-machine-shutdown-startup-microsoft-azure)
