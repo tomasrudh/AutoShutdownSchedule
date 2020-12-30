@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 3.4
+.VERSION 3.5
 
 .GUID 482e19fb-a8f0-4e3c-acbc-63b535d6486e
 
@@ -57,10 +57,12 @@ param(
     [parameter(Mandatory = $false)]
     [String] $tz = "Use *Default Time Zone* Variable Value",
     [parameter(Mandatory = $false)]
-    [bool]$Simulate = $false
+    [bool]$Simulate = $false,
+    [parameter(Mandatory = $false)]
+    [bool]$Deallocate = $true
 )
 
-$VERSION = "3.4.0"
+$VERSION = "3.5.0"
 
 # Define function to check current time against specified range
 function CheckScheduleEntry ([string]$TimeRange) {	
@@ -200,7 +202,36 @@ function AssertResourceManagerVirtualMachinePowerState {
     }
 }
 
-# Main runbook content
+# Function to  deallocate the virtual machine that is stopped but not deallocated
+function DeallocateVirtualMachine {
+    param(
+        [Object]$VirtualMachine,
+        [bool]$Simulate,
+        [bool]$Deallocate
+    )
+    # Get VM with current status
+    $resourceManagerVM = Get-AzVM -ResourceGroupName $VirtualMachine.ResourceGroupName -Name $VirtualMachine.Name -Status
+    $currentStatus = $resourceManagerVM.Statuses | Where-Object Code -Like "PowerState*" 
+    $currentStatus = $currentStatus.Code -replace "PowerState/", ""
+
+    # If stopped but not deallocated, deallocate
+    if ($currentStatus -eq 'stopped') {
+        Write-Output "[$($VirtualMachine.Name)]: The virtual machine is stopped but not deallocated, charges still incurred"
+        if ($Deallocate) {
+            if ($Simulate) {
+                Write-Output "[$($VirtualMachine.Name)]: SIMULATION -- Would have deallocated VM. (No action taken)"
+            }
+            else {
+                Write-Output "[$($VirtualMachine.Name)]: Deallocating VM"
+                $resourceManagerVM | Stop-AzVM -NoWait -Force > $null
+            }        
+        } else {
+            Write-Output "The setting Deallocate is set to False"
+        }
+    }    
+}
+
+    # Main runbook content
 try {
     # Retrieve time zone name from variable asset if not specified
     if ($tz -eq "Use *Default Time Zone* Variable Value") {
@@ -209,7 +240,10 @@ try {
             Write-Output "Specified time zone: [$tz]"
         }
         else {
-            throw "No time zone was specified, and no variable asset with name 'Default Time Zone' was found. Either specify a time zone or define the default using a variable setting"
+            #throw "No time zone was specified, and no variable asset with name 'Default Time Zone' was found. Either specify a time zone or define the default using a variable setting"
+            Write-Output "No time zone was specified, and no variable asset with name 'Default Time Zone' was found, will use UTC"
+            $tz = 'UTC'
+
         }
     }
 
@@ -327,6 +361,9 @@ try {
     # Then assert its correct power state based on the assigned schedule (if present)
     Write-Output "Processing [$($resourceManagerVMList.Count)] virtual machines found in subscription"
     foreach ($vm in $resourceManagerVMList) {
+        # Deallocate all machines stopped and not deallocated, regardless of tags      
+        DeallocateVirtualMachine -VirtualMachine $vm -Simulate $Simulate -Deallocate $Deallocate
+
         $schedule = $null
 
         # Check for direct tag or group-inherited tag
