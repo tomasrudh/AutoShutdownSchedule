@@ -42,6 +42,8 @@ The runbook is intended to run on a schedule in an Azure Automation account, wit
 
 Once the runbook is in place and scheduled, the only configuration required can be done through simple tagging of resources, and the runbook will implement whatever power schedules it finds during its next scheduled run. Think of this as a quick and basic power management scheduling solution for your Azure virtual machines.
 
+If any machine is stopped but not deallocated (it will still incur charges), will it be deallocated. Regardless of tags. Setting Deallocate to 'False' prevents this.
+
 This runbook do only handle RM virtual machines and not classic.
 
 ## Tag-based Power Schedules
