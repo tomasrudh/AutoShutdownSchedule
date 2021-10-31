@@ -1,4 +1,4 @@
-## 3.6 2021 31st of October
+## 3.7 2021 31st of October
 - Added possibility to use System or User Managed Identity
 - Added to have several shutdown only times
 - Added better validation and error reporting of the tags
