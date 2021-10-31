@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 3.6
+.VERSION 3.7
 
 .GUID 482e19fb-a8f0-4e3c-acbc-63b535d6486e
 
