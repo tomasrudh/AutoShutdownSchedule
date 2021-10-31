@@ -78,6 +78,7 @@ param(
 )
 
 $VERSION = "3.6.0"
+$script:DoNotStart = $false
 
 # Define function to check current time against specified range
 function CheckScheduleEntry ([string]$TimeRange) {	
@@ -123,7 +124,7 @@ function CheckScheduleEntry ([string]$TimeRange) {
                     # Skip detected day of week that isn't today
                 }
             }
-            elseif ($TimeRange -match '^([0-1]?[0-9]|[2][0-3]):([0-5][0-9])|([0-9]pm|am)$' -and -not ($TimeRange -like '*->*')) {
+            elseif ($TimeRange -match '^([0-1]?[0-9]|[2][0-3]):([0-5][0-9])|([0-9]pm|am)$') {
                 # Parse as time, e.g. '17:00'
                 $parsedDay = $null
                 $rangeStart = Get-Date $TimeRange
@@ -191,12 +192,17 @@ function AssertResourceManagerVirtualMachinePowerState {
 
     # If should be started and isn't, start VM
     if ($DesiredState -eq "Started" -and $currentStatus -notmatch "running") {
-        if ($Simulate) {
-            Write-Output "[$($VirtualMachine.Name)]: SIMULATION -- Would have started VM. (No action taken)"
+        if ($DoNotStart -eq $true) {
+            Write-Output "[$($VirtualMachine.Name)]: This tag never starts VMs"
         }
         else {
-            Write-Output "[$($VirtualMachine.Name)]: Starting VM"
-            $resourceManagerVM | Start-AzVM -NoWait > $null
+            if ($Simulate) {
+                Write-Output "[$($VirtualMachine.Name)]: SIMULATION -- Would have started VM. (No action taken)"
+            }
+            else {
+                Write-Output "[$($VirtualMachine.Name)]: Starting VM"
+                $resourceManagerVM | Start-AzVM -NoWait > $null
+            }
         }
     }
 		
@@ -240,14 +246,61 @@ function DeallocateVirtualMachine {
                 Write-Output "[$($VirtualMachine.Name)]: Deallocating VM"
                 $resourceManagerVM | Stop-AzVM -NoWait -Force > $null
             }        
-        } else {
+        }
+        else {
             Write-Output "The setting Deallocate is set to False"
         }
     }    
 }
 
-    # Main runbook content
+function ValidateScheduleList ($TimeRangeList) {
+    $TagRange = 0
+    $TagDay = 0
+    $TagTime = 0
+    $TagInvalid = 0
+    $TimeRanges = @($TimeRangeList -split "," | ForEach-Object { $_.Trim() })
+    foreach ($TimeRange in $TimeRanges) {
+        try {
+            if ($TimeRange -like '*->*') {
+                $Times = $TimeRange.Split('->')
+                $InError = $false
+                foreach ($Time in $Times) {
+                    if ($Time -notmatch '^(([0-1]?[0-9]|[2][0-3]):([0-5][0-9])|([0-9]pm|am))$') {
+                        $InError = $true
+                    }
+                }
+                if ($InError) {
+                    $TagInvalid += 1
+                }
+                else {
+                    $TagRange += 1
+                }
+            }
+            elseif ($TimeRange -match '^(([0-1]?[0-9]|[2][0-3]):([0-5][0-9])|([0-9]pm|am))$') {
+                $TagTime += 1
+                $script:DoNotStart = $true
+            }
+            elseif ([System.DayOfWeek].GetEnumValues() -contains $TimeRange) { $TagDay += 1 }
+            elseif (Get-Date $TimeRange) { $TagDay += 1 }
+            else { $TagInvalid += 1 }
+        }
+        catch {
+            $TagInvalid += 1
+        }
+    }
+    if ($TagInvalid -gt 0) {
+        return "Invalid tag: '$TimeRangeList'"
+    }
+    elseif ($TagTime -gt 0 -and (($TagRange -gt 0) -or ($TagDay -gt 0))) {
+        return "Time has to be alone in the tag: '$TimeRangeList'"
+    }
+    return 'OK'
+}
+
+# Main runbook content
 try {
+    # Ensures you do not inherit an AzContext in your runbook
+    Disable-AzContextAutosave -Scope Process
     # Retrieve time zone name from variable asset if not specified
     if ($tz -eq "Use *Default Time Zone* Variable Value") {
         $tz = Get-AutomationVariable -Name "Default Time Zone"
@@ -284,19 +337,30 @@ try {
     }
 
     # Retrieve credential
-    Write-Output "Getting the runas account"
+    $ManagedIdentityId = Get-AutomationVariable -Name "Managed Identity ID" -ErrorAction Ignore
     $RunAsConnection = Get-AutomationConnection -Name "AzureRunAsConnection" -ErrorAction Ignore
-    if ($RunAsConnection) {
+    if ($ManagedIdentityId -eq 'System') {
+        $IdentityName = (Get-AzADServicePrincipal -ServicePrincipalName $ManagedIdentityId).DisplayName
+        Write-Output ("Logging in to Azure using the system managed identity ($IdentityName)...")
+        if ($AzureSubscriptionName.Length -eq 0) {
+            throw "No subscription indicated"
+        }
+        Connect-AzAccount -Identity -Subscription $AzureSubscriptionName > $null
+    }
+    elseif ($ManagedIdentityId) {
+        Write-Output ("Logging in to Azure using the user managed identity...")
+        if ($AzureSubscriptionName.Length -eq 0) {
+            throw "No subscription indicated"
+        }
+        Connect-AzAccount -Identity -AccountId $ManagedIdentityId -Subscription $AzureSubscriptionName > $null
+    }
+    elseif ($RunAsConnection) {
         Write-Output ("Logging in to Azure using the runas account...")
         Connect-AzAccount -ServicePrincipal -TenantId $RunAsConnection.TenantId -ApplicationId $RunAsConnection.ApplicationId `
             -CertificateThumbprint $RunAsConnection.CertificateThumbprint -SubscriptionId $RunAsConnection.SubscriptionId > $null
-        $AzureSubscriptionName = (Get-AzSubscription -SubscriptionId $RunAsConnection.SubscriptionId).Name
     }
     else {
-        Write-Output "No runas account was found, trying with other ways"
-        if($AzureSubscriptionName.Length -eq 0) {
-            throw "No subscription indicated"
-        }
+        Write-Output "Logging in to Azure using the supplied credentials"
         Write-Output "Specified credential asset name: [$AzureCredentialName]"
         if ($AzureCredentialName -eq "Use *Default Automation Credential* asset") {
             # By default, look for "Default Automation Credential" asset
@@ -317,6 +381,9 @@ try {
         }
 
         # Connect to Azure using credential asset (AzureRM)
+        if ($AzureSubscriptionName.Length -eq 0) {
+            throw "No subscription indicated"
+        }  
         $account = Connect-AzAccount -Credential $azureCredential -SubscriptionName $AzureSubscriptionName
 
         # Check for returned userID, indicating successful authentication
@@ -402,6 +469,12 @@ try {
         # Check that tag value was succesfully obtained
         if ($null -eq $schedule) {
             Write-Output "[$($vm.Name)]: Failed to get tagged schedule for virtual machine. Skipping this VM."
+            continue
+        }
+
+        $Result = ValidateScheduleList $schedule
+        if ($Result -ne 'OK') {
+            Write-Output "[$($vm.Name)]: $Result. Skipping this VM."
             continue
         }
 

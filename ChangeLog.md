@@ -1,3 +1,8 @@
+## 3.6 2021 31st of October
+- Added possibility to use System or User Managed Identity
+- Added to have several shutdown only times
+- Added better validation and error reporting of the tags
+
 ## 3.5 2020 30th of December
 Added deallocation of machines stopped but not deallocated
 

@@ -83,17 +83,17 @@ The easiest way to write the schedule is to say it first in words as a list of t
 - Shut down from 8PM to 12AM and from 2AM to 7AM UTC every day (bringing online from 12-2AM for maintenance in between)
   - 8PM->12AM, 2AM -> 7AM
 - Shut down all day Saturday and Sunday (midnight to midnight)
-  - Saturday, Sunday
+  - Saturday, Sun
 - Shut down from 2AM to 7AM UTC every day and all day on weekends
   - 2:00->7:00, Saturday, Sunday
 - Shut down on Christmas Day and New Year’s Day
   - December 25, January 1
 - Shut down from 2AM to 7AM UTC every day, and all day on weekends, and on Christmas Day
   - 2:00->7:00, Saturday, Sunday, December 25
-- Shut down always – I don’t want this VM online, ever
-  - 0:00 -> 23:59:59
 - Shut down at 5PM, but never start
   - 17:00
+- Shut down at 5 and 23 PM, but never start
+  - 17:00,23:00
 
 ## What the Runbook Does
 The runbook AutoShutdownSchedule is an Azure Automation runbook. It can be run once at a time manually, but is intended to be configured to run on a schedule, e.g. once per hour.
@@ -136,7 +136,9 @@ Now we’ll go through the steps to get this working in your subscription. It wi
 This is an Azure Automation runbook, and as such you’ll need the following to use it:
   - Microsoft Azure [subscription](http://azure.microsoft.com/) (including trial subscriptions)
   - Azure Automation account created in subscription ([instructions](https://docs.microsoft.com/en-us/azure/automation/automation-create-standalone-account))
-    - The Automation Account has to be created with a runas account
+    - The Automation Account has to be created with a runas account or
+    - System Managed Account or
+    - User Managed Account
   - Runbook file downloaded from this page
 
 ## Import Runbook
@@ -153,9 +155,12 @@ The runbook is contained in the file "AutoShutdownSchedule.ps1" within the downl
 - Click **Publish** from the top menu and confirm
 - Confirm the runbook now shows a status of **Published**
 
-## Create Credential Asset
+## Setting up Credentials
+
+Use one of the options below.
+### Saved credentials
 ```diff
-- This section is no longer needed, the script instead uses an Automation runas account.
+- This section is no longer needed, the script instead uses an Automation run as account, or a managed identity.
 ```
 When the runbook executes, it accesses your subscription with credentials you configure. By default, it looks for a credential named "Default Automation Credential". This is for a user you create in your subscription's Azure Active Directory which is granted permissions to manage subscription resources, e.g. as a co-administrator. The steps:
 
@@ -169,6 +174,15 @@ When the runbook executes, it accesses your subscription with credentials you co
 - Click **Create**
 
 ![Credential](images/Credential.png)
+
+### System Managed Identity
+Create a System Managed Identity in the Automation Account, this account will automatically get Contributor rights in the subscription. If you remove the Automation Account will the System Managed Identity automatically be removed. Create a variable with the name Managed Identity ID and the value as the ID of the managed identy.
+
+### User Managed Identity
+Create a User Managed Identity and select that identity for use in the Automation Account. The identity must have Read and Virtual Machine Contributor rights. Create a variable with the name **Managed Identity ID** and the value as the ID of the managed identy.
+
+### Run As Account
+A Run As account automatically gets Contributor right on the subscription. Make sure you renew this account when it expires.
 
 ## Create Variables for Subscription Name and time zone
 The runbook also needs to know which subscription to connect to when it runs. In theory, a runbook can connect to any subscription, so we must specify one in particular. This is easily done by setting up a variable in our automation account.
