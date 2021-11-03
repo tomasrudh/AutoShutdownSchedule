@@ -1,3 +1,6 @@
+## 3.8 2021 3rd of November
+- Sometimes stop did not work
+
 ## 3.7 2021 31st of October
 - Added possibility to use System or User Managed Identity
 - Added to have several shutdown only times
