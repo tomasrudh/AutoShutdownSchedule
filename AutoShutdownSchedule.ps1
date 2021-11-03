@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 3.7
+.VERSION 3.8
 
 .GUID 482e19fb-a8f0-4e3c-acbc-63b535d6486e
 
@@ -262,10 +262,12 @@ function ValidateScheduleList ($TimeRangeList) {
     foreach ($TimeRange in $TimeRanges) {
         try {
             if ($TimeRange -like '*->*') {
-                $Times = $TimeRange.Split('->')
+                #$Times = $TimeRange.Split('->')
+                $Divider = $TimeRange.IndexOf('->')
+                $Times = @($TimeRange.Substring(0, $Divider), $TimeRange.Substring($Divider + 2))
                 $InError = $false
                 foreach ($Time in $Times) {
-                    if ($Time -notmatch '^(([0-1]?[0-9]|[2][0-3]):([0-5][0-9])|([0-9]pm|am))$') {
+                    if ($Time -notmatch '^(([0-1]?[0-9]|[2][0-3]):([0-5][0-9])|([0-1]?[0-9](pm|am)))$') {
                         $InError = $true
                     }
                 }
@@ -276,7 +278,7 @@ function ValidateScheduleList ($TimeRangeList) {
                     $TagRange += 1
                 }
             }
-            elseif ($TimeRange -match '^(([0-1]?[0-9]|[2][0-3]):([0-5][0-9])|([0-9]pm|am))$') {
+            elseif ($TimeRange -match '^(([0-1]?[0-9]|[2][0-3]):([0-5][0-9])|([0-1]?[0-9](pm|am)))$') {
                 $TagTime += 1
                 $script:DoNotStart = $true
             }
@@ -443,6 +445,7 @@ try {
     # Then assert its correct power state based on the assigned schedule (if present)
     Write-Output "Processing [$($resourceManagerVMList.Count)] virtual machines found in subscription"
     foreach ($vm in $resourceManagerVMList) {
+        $script:DoNotStart = $false
         # Deallocate all machines stopped and not deallocated, regardless of tags      
         DeallocateVirtualMachine -VirtualMachine $vm -Simulate $Simulate -Deallocate $Deallocate
 
@@ -474,7 +477,7 @@ try {
 
         $Result = ValidateScheduleList $schedule
         if ($Result -ne 'OK') {
-            Write-Output "[$($vm.Name)]: $Result. Skipping this VM."
+            Write-Error "[$($vm.Name)]: $Result. Skipping this VM."
             continue
         }
 
