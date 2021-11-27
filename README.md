@@ -157,11 +157,23 @@ The runbook is contained in the file "AutoShutdownSchedule.ps1" within the downl
 
 ## Setting up Credentials
 
-Use one of the options below.
+Use one of the options below. They will be evaluated in this order, the first one found will be used.
+
+
+### User Managed Identity
+Create a User Managed Identity and select that identity for use in the Automation Account. The identity must have Read and Virtual Machine Contributor rights. Create a variable with the name **Managed Identity ID** and the value as the Client ID of the managed identy.
+
+### System Managed Identity
+Create a System Managed Identity in the Automation Account, set this identity to have Contributor rights in the subscription. If you remove the Automation Account will the System Managed Identity automatically be removed. Create a variable with the name **Managed Identity ID** and the value **System**.
+
+### Run As Account
+This type of credential is no longer recommended, use a managed identity instead.
+
+A Run As account automatically gets Contributor right on the subscription. Make sure you renew this account when it expires.
+
 ### Saved credentials
-```diff
-- This section is no longer needed, the script instead uses an Automation run as account, or a managed identity.
-```
+This type of credential is no longer recommended, use a managed identity instead.
+
 When the runbook executes, it accesses your subscription with credentials you configure. By default, it looks for a credential named "Default Automation Credential". This is for a user you create in your subscription's Azure Active Directory which is granted permissions to manage subscription resources, e.g. as a co-administrator. The steps:
 
 - Create an Azure Active Directory user for runbook use if you haven’t already. This account will be the "service account" for the runbook and **must be a Virtual Machine Contributor** in the target subscription.
@@ -175,15 +187,6 @@ When the runbook executes, it accesses your subscription with credentials you co
 
 ![Credential](images/Credential.png)
 
-### System Managed Identity
-Create a System Managed Identity in the Automation Account, this account will automatically get Contributor rights in the subscription. If you remove the Automation Account will the System Managed Identity automatically be removed. Create a variable with the name Managed Identity ID and the value as the ID of the managed identy.
-
-### User Managed Identity
-Create a User Managed Identity and select that identity for use in the Automation Account. The identity must have Read and Virtual Machine Contributor rights. Create a variable with the name **Managed Identity ID** and the value as the ID of the managed identy.
-
-### Run As Account
-A Run As account automatically gets Contributor right on the subscription. Make sure you renew this account when it expires.
-
 ## Create Variables for Subscription Name and time zone
 The runbook also needs to know which subscription to connect to when it runs. In theory, a runbook can connect to any subscription, so we must specify one in particular. This is easily done by setting up a variable in our automation account.
 - Open subscription in [Azure portal](https://portal.azure.com)
@@ -194,7 +197,7 @@ The runbook also needs to know which subscription to connect to when it runs. In
 - Click **Add a variable** from the top menu
 - Give the variable a name ("**Default Azure Subscription**" expected by default), and enter the subscription name as the variable’s value. Click **Create**.
 - Click **Add a variable** from the top menu again
-- Give the variable a name ("**Default Time Zone**" expected by default), and enter the time zone name as the variable’s value, for example "W. Europe Standard Time". Use the Powershell command `Get-TimeZone -ListAvailable` to see all recognized time zones.  Click **Create**.
+- Give the variable a name ("**Default Time Zone**" expected by default), and enter the Id of the time zone as the variable’s value, for example "W. Europe Standard Time". Use the Powershell command `Get-TimeZone -ListAvailable` to see all recognized time zones.  Click **Create**.
 
 ## Schedule the Runbook
 The runbook should be scheduled to run periodically. As previously discussed, this does not determine the power on/power off schedule. It only determines how often the power schedules on resources are checked. Azure allows up to an hourly frequency, so we’ll take advantage of that:
