@@ -339,18 +339,18 @@ try {
     }
 
     # Retrieve credential
+
     $ManagedIdentityId = Get-AutomationVariable -Name "Managed Identity ID" -ErrorAction Ignore
     $RunAsConnection = Get-AutomationConnection -Name "AzureRunAsConnection" -ErrorAction Ignore
     if ($ManagedIdentityId -eq 'System') {
-        $IdentityName = (Get-AzADServicePrincipal -ServicePrincipalName $ManagedIdentityId).DisplayName
-        Write-Output ("Logging in to Azure using the system managed identity ($IdentityName)...")
+        Write-Output ("Logging in to Azure using the system managed identity...")
         if ($AzureSubscriptionName.Length -eq 0) {
             throw "No subscription indicated"
         }
         Connect-AzAccount -Identity -Subscription $AzureSubscriptionName > $null
     }
     elseif ($ManagedIdentityId) {
-        Write-Output ("Logging in to Azure using the user managed identity...")
+        Write-Output "Logging in to Azure using the user managed identity..."
         if ($AzureSubscriptionName.Length -eq 0) {
             throw "No subscription indicated"
         }
@@ -414,17 +414,12 @@ try {
         $targetSubscription = $subscriptions | Select-Object -First 1
         $targetSubscription | Select-AzSubscription > $null
 
-        # Connect via Azure Resource Manager if not already done using the runas account
-        if (!$RunAsConnection) {
-            Connect-AzAccount -Credential $azureCredential -SubscriptionId $targetSubscription.SubscriptionId > $null
-        }
-
         #$currentSubscription = Get-AzSubscription
         Write-Output "Working against subscription: $($targetSubscription.Name) ($($targetSubscription.SubscriptionId))"
     }
     else {
         if ($subscription.Count -eq 0) {
-            throw "No accessible subscription found with name or ID [$AzureSubscriptionName]. Check the runbook parameters and ensure user is a co-administrator on the target subscription."
+            throw "No accessible subscription found with name or ID [$AzureSubscriptionName]."
         }
         elseif ($subscriptions.Count -gt 1) {
             throw "More than one accessible subscription found with name or ID [$AzureSubscriptionName]. Please ensure your subscription names are unique, or specify the ID instead"
