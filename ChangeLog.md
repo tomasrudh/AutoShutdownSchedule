@@ -1,3 +1,6 @@
+## 3.8 2021 29th of November
+- Bugfix, authentication did not always work, change the readme text to be a bit clearer.
+
 ## 3.8 2021 3rd of November
 - Sometimes stop did not work
 
