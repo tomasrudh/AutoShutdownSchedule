@@ -17,13 +17,13 @@
   - [Prerequisites](https://github.com/tomasrudh/AutoShutdownSchedule#prerequisites)
   - [Import runbook](https://github.com/tomasrudh/AutoShutdownSchedule#import-runbook)
   - [Create credential asset](https://github.com/tomasrudh/AutoShutdownSchedule#create-credential-asset)
-  - [Create variables for subscription name and time zone](https://github.com/tomasrudh/AutoShutdownSchedule#create-variables-for-subscription-name-and-time-zone)
+  - [Create variables for subscription name and time zone](https://github.com/tomasrudh/AutoShutdownSchedule#create-variables-for-subscription-name-time-zone-and-azure-environment)
   - [Schedule the runbook](https://github.com/tomasrudh/AutoShutdownSchedule#schedule-the-runbook)
   - [Configure shutdown schedule tags](https://github.com/tomasrudh/AutoShutdownSchedule#configure-shutdown-schedule-tags)
   - [Initial testing](https://github.com/tomasrudh/AutoShutdownSchedule#initial-testing)
   - [Troubleshooting](https://github.com/tomasrudh/AutoShutdownSchedule#troubleshooting)
   - [Automation account configuration](https://github.com/tomasrudh/AutoShutdownSchedule#automation-account-configuration)
-  
+
 ![Result](images/Output.png)
 
 ## Why Use This?
@@ -187,7 +187,7 @@ When the runbook executes, it accesses your subscription with credentials you co
 
 ![Credential](images/Credential.png)
 
-## Create Variables for Subscription Name and time zone
+## Create Variables for Subscription Name, Time Zone and Azure Environment
 The runbook also needs to know which subscription to connect to when it runs. In theory, a runbook can connect to any subscription, so we must specify one in particular. This is easily done by setting up a variable in our automation account.
 - Open subscription in [Azure portal](https://portal.azure.com)
 - Note your target subscription name as shown in Browse > Subscriptions
@@ -198,6 +198,10 @@ The runbook also needs to know which subscription to connect to when it runs. In
 - Give the variable a name ("**Default Azure Subscription**" expected by default), and enter the subscription name as the variable’s value. Click **Create**.
 - Click **Add a variable** from the top menu again
 - Give the variable a name ("**Default Time Zone**" expected by default), and enter the Id of the time zone as the variable’s value, for example "W. Europe Standard Time". Use the Powershell command `Get-TimeZone -ListAvailable` to see all recognized time zones.  Click **Create**.
+
+If the runbook is running in an Azure Enviroment that is not the default public cloud (AzureCloud), you must specify it in order to authenticate successfully.
+- Click **Add a variable** from the top menu again
+- Give the variable a name ("**Default Azure Environment**" expected by default), and enter the Name of the environment as the variable’s value, for example "AzureUSGovernment". Use the Powershell command `Get-AzEnvironment` to see all supported services.  Click **Create**.
 
 ## Schedule the Runbook
 The runbook should be scheduled to run periodically. As previously discussed, this does not determine the power on/power off schedule. It only determines how often the power schedules on resources are checked. Azure allows up to an hourly frequency, so we’ll take advantage of that:

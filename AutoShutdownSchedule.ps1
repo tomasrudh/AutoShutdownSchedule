@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 3.8
+.VERSION 3.9.0
 
 .GUID 482e19fb-a8f0-4e3c-acbc-63b535d6486e
 
@@ -45,6 +45,10 @@ OR OTHER DEALINGS IN THE SOFTWARE.
     The name or ID of Azure subscription in which the resources will be created. By default, the runbook will use 
     the value defined in the Variable setting named "Default Azure Subscription"
 
+	PARAMETER AzureEnvironmentName
+	The name of an Azure Environment in which the Azure Subscription presides. By default, the runbook will use
+	the value defined in the Variable setting named "Default Azure Environment".
+
     PARAMETER tz
     The name of the time zone you want to use. Run 'Get-TimeZone -ListAvailable' to get available timezone ID's.
 
@@ -69,6 +73,8 @@ param(
     [String] $AzureCredentialName = "Use *Default Automation Credential* Asset",
     [parameter(Mandatory = $false)]
     [String] $AzureSubscriptionName = "Use *Default Azure Subscription* Variable Value",
+	[parameter(Mandatory = $false)]
+	[String] $AzureEnvironmentName = "Use *Default Azure Environment* Variable Value",
     [parameter(Mandatory = $false)]
     [String] $tz = "Use *Default Time Zone* Variable Value",
     [parameter(Mandatory = $false)]
@@ -77,7 +83,7 @@ param(
     [bool]$Deallocate = $true
 )
 
-$VERSION = "3.6.0"
+$VERSION = "3.9.0"
 $script:DoNotStart = $false
 
 # Define function to check current time against specified range
@@ -338,6 +344,17 @@ try {
         }
     }
 
+	# Retrieve Azure environment from variable if not specified
+    if ($AzureEnvironmentName -eq "Use *Default Azure Environment* Variable Value") {
+        $AzureEnvironmentName = Get-AutomationVariable -Name "Default Azure Environment"
+        if ($AzureEnvironmentName.length -gt 0) {
+            Write-Output "Specified Azure Environment: [$AzureEnvironmentName]"
+        }
+        else {
+            Write-Output "No Azure Environment was specified, and no variable asset with name 'Default Azure Environment' was found, will use AzureCloud"
+            $AzureEnvironmentName = 'AzureCloud'
+        }
+    }
     # Retrieve credential
 
     $ManagedIdentityId = Get-AutomationVariable -Name "Managed Identity ID" -ErrorAction Ignore
@@ -347,19 +364,23 @@ try {
         if ($AzureSubscriptionName.Length -eq 0) {
             throw "No subscription indicated"
         }
-        Connect-AzAccount -Identity -Subscription $AzureSubscriptionName > $null
+        Connect-AzAccount -Identity -Subscription $AzureSubscriptionName -EnvironmentName $AzureEnvironmentName > $null
     }
     elseif ($ManagedIdentityId) {
         Write-Output "Logging in to Azure using the user managed identity..."
         if ($AzureSubscriptionName.Length -eq 0) {
             throw "No subscription indicated"
         }
-        Connect-AzAccount -Identity -AccountId $ManagedIdentityId -Subscription $AzureSubscriptionName > $null
+        Connect-AzAccount -Identity -AccountId $ManagedIdentityId -Subscription $AzureSubscriptionName -EnvironmentName $AzureEnvironmentName > $null
     }
     elseif ($RunAsConnection) {
         Write-Output ("Logging in to Azure using the runas account...")
-        Connect-AzAccount -ServicePrincipal -TenantId $RunAsConnection.TenantId -ApplicationId $RunAsConnection.ApplicationId `
-            -CertificateThumbprint $RunAsConnection.CertificateThumbprint -SubscriptionId $RunAsConnection.SubscriptionId > $null
+        Connect-AzAccount -ServicePrincipal `
+			-TenantId $RunAsConnection.TenantId `
+			-ApplicationId $RunAsConnection.ApplicationId `
+            -CertificateThumbprint $RunAsConnection.CertificateThumbprint `
+			-SubscriptionId $RunAsConnection.SubscriptionId `
+			-EnvironmentName $AzureEnvironmentName > $null
     }
     else {
         Write-Output "Logging in to Azure using the supplied credentials"
@@ -386,7 +407,7 @@ try {
         if ($AzureSubscriptionName.Length -eq 0) {
             throw "No subscription indicated"
         }  
-        $account = Connect-AzAccount -Credential $azureCredential -SubscriptionName $AzureSubscriptionName
+        $account = Connect-AzAccount -Credential $azureCredential -SubscriptionName $AzureSubscriptionName -EnvironmentName $AzureEnvironmentName
 
         # Check for returned userID, indicating successful authentication
         #if(Get-AzureAccount -Name $azureCredential.UserName)
