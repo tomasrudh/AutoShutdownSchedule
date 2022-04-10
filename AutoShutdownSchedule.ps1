@@ -26,8 +26,8 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 .USAGE
     The runbook implements a solution for scheduled power management of Azure virtual machines in combination with tags
     on virtual machines or resource groups which define a shutdown schedule. Each time it runs, the runbook looks for all
-    virtual machines or resource groups with a tag named "AutoShutdownSchedule" having a value defining the schedule, 
-    e.g. "10PM -> 6AM". It then checks the current time against each schedule entry, ensuring that VMs with tags or in tagged groups 
+    virtual machines or resource groups with a tag named "AutoShutdownSchedule" having a value defining the schedule,
+    e.g. "10PM -> 6AM". It then checks the current time against each schedule entry, ensuring that VMs with tags or in tagged groups
     are shut down or started to conform to the defined schedule.
 
     This is a PowerShell runbook, as opposed to a PowerShell Workflow runbook.
@@ -42,12 +42,12 @@ OR OTHER DEALINGS IN THE SOFTWARE.
     17:00                   Turns off at 17, does never start, has to be alone in the tag
 
     PARAMETER AzureSubscriptionName
-    The name or ID of Azure subscription in which the resources will be created. By default, the runbook will use 
+    The name or ID of Azure subscription in which the resources will be created. By default, the runbook will use
     the value defined in the Variable setting named "Default Azure Subscription"
 
-	PARAMETER AzureEnvironmentName
-	The name of an Azure Environment in which the Azure Subscription presides. By default, the runbook will use
-	the value defined in the Variable setting named "Default Azure Environment".
+    PARAMETER AzureEnvironmentName
+    The name of an Azure Environment in which the Azure Subscription presides. By default, the runbook will use
+    the value defined in the Variable setting named "Default Azure Environment".
 
     PARAMETER tz
     The name of the time zone you want to use. Run 'Get-TimeZone -ListAvailable' to get available timezone ID's.
@@ -55,7 +55,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
     PARAMETER Simulate
     If $true, the runbook will not perform any power actions and will only simulate evaluating the tagged schedules. Use this
     to test your runbook to see what it will do when run normally (Simulate = $false).
-    
+
 .PROJECTURI https://github.com/tomasrudh/AutoShutdownSchedule
 
 .TAGS
@@ -73,8 +73,8 @@ param(
     [String] $AzureCredentialName = "Use *Default Automation Credential* Asset",
     [parameter(Mandatory = $false)]
     [String] $AzureSubscriptionName = "Use *Default Azure Subscription* Variable Value",
-	[parameter(Mandatory = $false)]
-	[String] $AzureEnvironmentName = "Use *Default Azure Environment* Variable Value",
+    [parameter(Mandatory = $false)]
+    [String] $AzureEnvironmentName = "Use *Default Azure Environment* Variable Value",
     [parameter(Mandatory = $false)]
     [String] $tz = "Use *Default Time Zone* Variable Value",
     [parameter(Mandatory = $false)]
@@ -87,13 +87,13 @@ $VERSION = "3.9.0"
 $script:DoNotStart = $false
 
 # Define function to check current time against specified range
-function CheckScheduleEntry ([string]$TimeRange) {	
+function CheckScheduleEntry ([string]$TimeRange) {
     # Initialize variables
     $rangeStart, $rangeEnd, $parsedDay = $null
     $tempTime = (Get-Date).ToUniversalTime()
     $tzEST = [System.TimeZoneInfo]::FindSystemTimeZoneById($tz)
     $CurrentTime = [System.TimeZoneInfo]::ConvertTimeFromUtc($tempTime, $tzEST)
-    $midnight = $currentTime.AddDays(1).Date	        
+    $midnight = $currentTime.AddDays(1).Date
 
     try {
         # Parse as range if contains '->'
@@ -102,24 +102,24 @@ function CheckScheduleEntry ([string]$TimeRange) {
             if ($timeRangeComponents.Count -eq 2) {
                 $rangeStart = Get-Date $timeRangeComponents[0]
                 $rangeEnd = Get-Date $timeRangeComponents[1]
-	
+
                 # Check for crossing midnight
                 if ($rangeStart -gt $rangeEnd) {
                     # If current time is between the start of range and midnight tonight, interpret start time as earlier today and end time as tomorrow
                     if ($currentTime -ge $rangeStart -and $currentTime -lt $midnight) {
                         $rangeEnd = $rangeEnd.AddDays(1)
                     }
-                    # Otherwise interpret start time as yesterday and end time as today   
+                    # Otherwise interpret start time as yesterday and end time as today
                     else {
                         $rangeStart = $rangeStart.AddDays(-1)
                     }
                 }
             }
             else {
-                Write-Output "`tWARNING: Invalid time range format. Expects valid .Net DateTime-formatted start time and end time separated by '->'" 
+                Write-Output "`tWARNING: Invalid time range format. Expects valid .Net DateTime-formatted start time and end time separated by '->'"
             }
         }
-        # Otherwise attempt to parse as a full day entry, e.g. 'Monday' or 'December 25' 
+        # Otherwise attempt to parse as a full day entry, e.g. 'Monday' or 'December 25'
         else {
             # If specified as day of week, check if today
             if ([System.DayOfWeek].GetEnumValues() -contains $TimeRange) {
@@ -143,7 +143,7 @@ function CheckScheduleEntry ([string]$TimeRange) {
                     $parsedDay = Get-Date $TimeRange
                 }
             }
-	    
+
             if ($null -ne $parsedDay) {
                 $rangeStart = $parsedDay # Defaults to midnight
                 $rangeEnd = $parsedDay.AddHours(23).AddMinutes(59).AddSeconds(59) # End of the same day
@@ -152,10 +152,10 @@ function CheckScheduleEntry ([string]$TimeRange) {
     }
     catch {
         # Record any errors and return false by default
-        Write-Output "`tWARNING: Exception encountered while parsing time range. Details: $($_.Exception.Message). Check the syntax of entry, e.g. '<StartTime> -> <EndTime>', or days/dates like 'Sunday' and 'December 25'"   
+        Write-Output "`tWARNING: Exception encountered while parsing time range. Details: $($_.Exception.Message). Check the syntax of entry, e.g. '<StartTime> -> <EndTime>', or days/dates like 'Sunday' and 'December 25'"
         return $false
     }
-	
+
     # Check if current time falls within range
     if ($currentTime -ge $rangeStart -and $currentTime -le $rangeEnd) {
         return $true
@@ -163,7 +163,7 @@ function CheckScheduleEntry ([string]$TimeRange) {
     else {
         return $false
     }
-	
+
 } # End function CheckScheduleEntry
 
 # Function to handle power state assertion for resource manager VMs
@@ -193,7 +193,7 @@ function AssertResourceManagerVirtualMachinePowerState {
 
     # Get VM with current status
     $resourceManagerVM = Get-AzVM -ResourceGroupName $VirtualMachine.ResourceGroupName -Name $VirtualMachine.Name -Status
-    $currentStatus = $resourceManagerVM.Statuses | Where-Object Code -Like "PowerState*" 
+    $currentStatus = $resourceManagerVM.Statuses | Where-Object Code -Like "PowerState*"
     $currentStatus = $currentStatus.Code -replace "PowerState/", ""
 
     # If should be started and isn't, start VM
@@ -211,7 +211,7 @@ function AssertResourceManagerVirtualMachinePowerState {
             }
         }
     }
-		
+
     # If should be stopped and isn't, stop VM
     elseif ($DesiredState -eq "StoppedDeallocated" -and $currentStatus -ne "deallocated") {
         if ($Simulate) {
@@ -238,7 +238,7 @@ function DeallocateVirtualMachine {
     )
     # Get VM with current status
     $resourceManagerVM = Get-AzVM -ResourceGroupName $VirtualMachine.ResourceGroupName -Name $VirtualMachine.Name -Status
-    $currentStatus = $resourceManagerVM.Statuses | Where-Object Code -Like "PowerState*" 
+    $currentStatus = $resourceManagerVM.Statuses | Where-Object Code -Like "PowerState*"
     $currentStatus = $currentStatus.Code -replace "PowerState/", ""
 
     # If stopped but not deallocated, deallocate
@@ -251,12 +251,12 @@ function DeallocateVirtualMachine {
             else {
                 Write-Output "[$($VirtualMachine.Name)]: Deallocating VM"
                 $resourceManagerVM | Stop-AzVM -NoWait -Force > $null
-            }        
+            }
         }
         else {
             Write-Output "The setting Deallocate is set to False"
         }
-    }    
+    }
 }
 
 function ValidateScheduleList ($TimeRangeList) {
@@ -335,7 +335,7 @@ try {
         Write-Output "*** Running in LIVE mode. Schedules will be enforced. ***"
     }
     Write-Output "Current $tz time [$($currentTime.ToString("dddd, yyyy MMM dd HH:mm:ss"))] will be checked against schedules"
-        
+
     # Retrieve subscription name from variable asset if not specified
     if ($AzureSubscriptionName -eq "Use *Default Azure Subscription* Variable Value") {
         $AzureSubscriptionName = Get-AutomationVariable -Name "Default Azure Subscription" -ErrorAction Ignore
@@ -344,7 +344,7 @@ try {
         }
     }
 
-	# Retrieve Azure environment from variable if not specified
+    # Retrieve Azure environment from variable if not specified
     if ($AzureEnvironmentName -eq "Use *Default Azure Environment* Variable Value") {
         $AzureEnvironmentName = Get-AutomationVariable -Name "Default Azure Environment" -ErrorAction Ignore
         if ($AzureEnvironmentName.length -gt 0) {
@@ -376,11 +376,11 @@ try {
     elseif ($RunAsConnection) {
         Write-Output ("Logging in to Azure using the runas account...")
         Connect-AzAccount -ServicePrincipal `
-			-TenantId $RunAsConnection.TenantId `
-			-ApplicationId $RunAsConnection.ApplicationId `
+            -TenantId $RunAsConnection.TenantId `
+            -ApplicationId $RunAsConnection.ApplicationId `
             -CertificateThumbprint $RunAsConnection.CertificateThumbprint `
-			-SubscriptionId $RunAsConnection.SubscriptionId `
-			-EnvironmentName $AzureEnvironmentName > $null
+            -SubscriptionId $RunAsConnection.SubscriptionId `
+            -EnvironmentName $AzureEnvironmentName > $null
     }
     else {
         Write-Output "Logging in to Azure using the supplied credentials"
@@ -406,7 +406,7 @@ try {
         # Connect to Azure using credential asset (AzureRM)
         if ($AzureSubscriptionName.Length -eq 0) {
             throw "No subscription indicated"
-        }  
+        }
         $account = Connect-AzAccount -Credential $azureCredential -SubscriptionName $AzureSubscriptionName -EnvironmentName $AzureEnvironmentName
 
         # Check for returned userID, indicating successful authentication
@@ -453,16 +453,16 @@ try {
     # Get resource groups that are tagged for automatic shutdown of resources
     $taggedResourceGroups = @(Get-AzResourceGroup | Where-Object { $_.Tags.Count -gt 0 -and $_.Tags.AutoShutdownSchedule })
     $taggedResourceGroupNames = @($taggedResourceGroups | Select-Object -ExpandProperty ResourceGroupName)
-    Write-Output "Found [$($taggedResourceGroups.Count)] schedule-tagged resource groups in subscription"	
+    Write-Output "Found [$($taggedResourceGroups.Count)] schedule-tagged resource groups in subscription"
 
     # For each VM, determine
     #  - Is it directly tagged for shutdown or member of a tagged resource group
-    #  - Is the current time within the tagged schedule 
+    #  - Is the current time within the tagged schedule
     # Then assert its correct power state based on the assigned schedule (if present)
     Write-Output "Processing [$($resourceManagerVMList.Count)] virtual machines found in subscription"
     foreach ($vm in $resourceManagerVMList) {
         $script:DoNotStart = $false
-        # Deallocate all machines stopped and not deallocated, regardless of tags      
+        # Deallocate all machines stopped and not deallocated, regardless of tags
         DeallocateVirtualMachine -VirtualMachine $vm -Simulate $Simulate -Deallocate $Deallocate
 
         $schedule = $null
@@ -499,7 +499,7 @@ try {
 
         # Parse the ranges in the Tag value. Expects a string of comma-separated time ranges, or a single time range
         $timeRangeList = @($schedule -split "," | ForEach-Object { $_.Trim() })
-	    
+
         # Check each range against the current time to see if any schedule is matched
         $scheduleMatched = $false
         $matchedSchedule = $null
@@ -511,9 +511,9 @@ try {
             }
         }
 
-        # Enforce desired state for group resources based on result. 
+        # Enforce desired state for group resources based on result.
         if ($scheduleMatched) {
-            # Schedule is matched. Shut down the VM if it is running. 
+            # Schedule is matched. Shut down the VM if it is running.
             Write-Output "[$($vm.Name)]: Current time [$currentTime] falls within the scheduled shutdown range [$matchedSchedule]"
             AssertVirtualMachinePowerState -VirtualMachine $vm -RGName $vm.ResourceGroupName -DesiredState "StoppedDeallocated" -ResourceManagerVMList $resourceManagerVMList -ClassicVMList $classicVMList -Simulate $Simulate
         }
