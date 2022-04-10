@@ -346,7 +346,7 @@ try {
 
 	# Retrieve Azure environment from variable if not specified
     if ($AzureEnvironmentName -eq "Use *Default Azure Environment* Variable Value") {
-        $AzureEnvironmentName = Get-AutomationVariable -Name "Default Azure Environment"
+        $AzureEnvironmentName = Get-AutomationVariable -Name "Default Azure Environment" -ErrorAction Ignore
         if ($AzureEnvironmentName.length -gt 0) {
             Write-Output "Specified Azure Environment: [$AzureEnvironmentName]"
         }
