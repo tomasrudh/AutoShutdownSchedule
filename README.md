@@ -1,29 +1,33 @@
 # Scheduled Virtual Machine Shutdown/Startup - Microsoft Azure
 
 ## Table of Contents
-- [Why use This](https://github.com/tomasrudh/AutoShutdownSchedule#why-use-this)
-- [Credits](https://github.com/tomasrudh/AutoShutdownSchedule#credits)
-- [What it does](https://github.com/tomasrudh/AutoShutdownSchedule#what-it-does)
-- [Tag-based power schedule](https://github.com/tomasrudh/AutoShutdownSchedule#tag-based-power-schedules)
-- [Tag content](https://github.com/tomasrudh/AutoShutdownSchedule#tag-content)
-  - [Get to know datetime](https://github.com/tomasrudh/AutoShutdownSchedule#get-to-know-datetime)
-- [Schedule tag examples](https://github.com/tomasrudh/AutoShutdownSchedule#schedule-tag-examples)
-- [What the runbook does](https://github.com/tomasrudh/AutoShutdownSchedule#what-the-runbook-does)
-- [Runbook logs](https://github.com/tomasrudh/AutoShutdownSchedule#runbook-logs)
-- [Performance](https://github.com/tomasrudh/AutoShutdownSchedule#performance)
-- [Testing](https://github.com/tomasrudh/AutoShutdownSchedule#testing)
-- [Azure modules](https://github.com/tomasrudh/AutoShutdownSchedule#azure-modules)
-- [Setting it up in Azure](https://github.com/tomasrudh/AutoShutdownSchedule#setting-it-up-in-azure)
-  - [Prerequisites](https://github.com/tomasrudh/AutoShutdownSchedule#prerequisites)
-  - [Import runbook](https://github.com/tomasrudh/AutoShutdownSchedule#import-runbook)
-  - [Create credential asset](https://github.com/tomasrudh/AutoShutdownSchedule#create-credential-asset)
-  - [Create variables for subscription name and time zone](https://github.com/tomasrudh/AutoShutdownSchedule#create-variables-for-subscription-name-and-time-zone)
-  - [Schedule the runbook](https://github.com/tomasrudh/AutoShutdownSchedule#schedule-the-runbook)
-  - [Configure shutdown schedule tags](https://github.com/tomasrudh/AutoShutdownSchedule#configure-shutdown-schedule-tags)
-  - [Initial testing](https://github.com/tomasrudh/AutoShutdownSchedule#initial-testing)
-  - [Troubleshooting](https://github.com/tomasrudh/AutoShutdownSchedule#troubleshooting)
-  - [Automation account configuration](https://github.com/tomasrudh/AutoShutdownSchedule#automation-account-configuration)
-  
+- [Why Use This?](#why-use-this)
+- [Credits](#credits)
+- [What It Does](#what-it-does)
+- [Tag-based Power Schedules](#tag-based-power-schedules)
+- [Tag Content](#tag-content)
+  - [Get to Know DateTime](#get-to-know-datetime)
+- [Schedule Tag Examples](#schedule-tag-examples)
+- [What the Runbook Does](#what-the-runbook-does)
+- [Runbook Logs](#runbook-logs)
+- [Performance](#performance)
+- [Testing](#testing)
+- [Azure Modules](#azure-modules)
+- [Setting it up in Azure](#setting-it-up-in-azure)
+  - [Prerequisites](#prerequisites)
+  - [Import Runbook](#import-runbook)
+  - [Setting up Credentials](#setting-up-credentials)
+    - [User Managed Identity](#user-managed-identity)
+    - [System Managed Identity](#system-managed-identity)
+    - [Run As Account](#run-as-account)
+    - [Saved credentials](#saved-credentials)
+  - [Create Variables for Subscription Name, time zone and Azure Environment](#create-variables-for-subscription-name-time-zone-and-azure-environment)
+  - [Schedule the Runbook](#schedule-the-runbook)
+  - [Configure Shutdown Schedule Tags](#configure-shutdown-schedule-tags)
+  - [Initial Testing](#initial-testing)
+  - [Troubleshooting](#troubleshooting)
+  - [Automation Account Configuration](#automation-account-configuration)
+
 ![Result](images/Output.png)
 
 ## Why Use This?
@@ -187,7 +191,7 @@ When the runbook executes, it accesses your subscription with credentials you co
 
 ![Credential](images/Credential.png)
 
-## Create Variables for Subscription Name and time zone
+## Create Variables for Subscription Name, Time Zone and Azure Environment
 The runbook also needs to know which subscription to connect to when it runs. In theory, a runbook can connect to any subscription, so we must specify one in particular. This is easily done by setting up a variable in our automation account.
 - Open subscription in [Azure portal](https://portal.azure.com)
 - Note your target subscription name as shown in Browse > Subscriptions
@@ -198,6 +202,10 @@ The runbook also needs to know which subscription to connect to when it runs. In
 - Give the variable a name ("**Default Azure Subscription**" expected by default), and enter the subscription name as the variable’s value. Click **Create**.
 - Click **Add a variable** from the top menu again
 - Give the variable a name ("**Default Time Zone**" expected by default), and enter the Id of the time zone as the variable’s value, for example "W. Europe Standard Time". Use the Powershell command `Get-TimeZone -ListAvailable` to see all recognized time zones.  Click **Create**.
+
+If the runbook is running in an Azure Enviroment that is not the default public cloud (AzureCloud), you must specify it in order to authenticate successfully.
+- Click **Add a variable** from the top menu again
+- Give the variable a name ("**Default Azure Environment**" expected by default), and enter the Name of the environment as the variable’s value, for example "AzureUSGovernment". Use the Powershell command `Get-AzEnvironment` to see all supported services.  Click **Create**.
 
 ## Schedule the Runbook
 The runbook should be scheduled to run periodically. As previously discussed, this does not determine the power on/power off schedule. It only determines how often the power schedules on resources are checked. Azure allows up to an hourly frequency, so we’ll take advantage of that:
