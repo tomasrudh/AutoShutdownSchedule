@@ -1,5 +1,5 @@
-## 3.9 2022 17th of March
-- Added ability to specify Azure environment
+## 3.9 2022 11th of April
+- Added ability to specify Azure environment. Thanks to Hank McCord for contributing this change.
 
 ## 3.8 2021 29th of November
 - Bugfix, authentication did not always work, change the readme text to be a bit clearer.
