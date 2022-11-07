@@ -93,6 +93,7 @@ function CheckScheduleEntry ([string]$TimeRange) {
     $tempTime = (Get-Date).ToUniversalTime()
     $tzEST = [System.TimeZoneInfo]::FindSystemTimeZoneById($tz)
     $CurrentTime = [System.TimeZoneInfo]::ConvertTimeFromUtc($tempTime, $tzEST)
+    $currentTime = $CurrentTime.AddDays((Get-Date).Day - $CurrentTime.Day)
     $midnight = $currentTime.AddDays(1).Date
 
     try {
