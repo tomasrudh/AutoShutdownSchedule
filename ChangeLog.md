@@ -1,5 +1,5 @@
 ## 3.9.1 2022 7th of November
-- Compensate for when conversion to UTC ends up on wrong day.
+- Compensate for when conversion to UTC ends up on wrong day. Thanks to sivagithub25 for pointing this out.
 
 ## 3.9 2022 11th of April
 - Added ability to specify Azure environment. Thanks to Hank McCord for contributing this change.
