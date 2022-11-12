@@ -83,7 +83,7 @@ param(
     [bool]$Deallocate = $true
 )
 
-$VERSION = "3.9.0"
+$VERSION = "3.9.1"
 $script:DoNotStart = $false
 
 # Define function to check current time against specified range
@@ -93,7 +93,6 @@ function CheckScheduleEntry ([string]$TimeRange) {
     $tempTime = (Get-Date).ToUniversalTime()
     $tzEST = [System.TimeZoneInfo]::FindSystemTimeZoneById($tz)
     $CurrentTime = [System.TimeZoneInfo]::ConvertTimeFromUtc($tempTime, $tzEST)
-    $currentTime = $CurrentTime.AddDays((Get-Date).Day - $CurrentTime.Day)
     $midnight = $currentTime.AddDays(1).Date
 
     try {
@@ -135,14 +134,12 @@ function CheckScheduleEntry ([string]$TimeRange) {
                 # Parse as time, e.g. '17:00'
                 $parsedDay = $null
                 $rangeStart = Get-Date $TimeRange
+                $rangeStart = $rangeStart.AddDays((Get-Date).Day - $CurrentTime.Day)
                 $rangeEnd = $rangeStart.AddMinutes(30) # Only match this hour
             }
             else {
                 # Otherwise attempt to parse as a date, e.g. 'December 25'
-                else
-                {
-                    $parsedDay = Get-Date $TimeRange
-                }
+                $parsedDay = Get-Date $TimeRange
             }
 
             if ($null -ne $parsedDay) {
