@@ -1,5 +1,5 @@
 <#PSScriptInfo
-.VERSION 3.9.1
+.VERSION 3.9.2
 
 .GUID 482e19fb-a8f0-4e3c-acbc-63b535d6486e
 
@@ -83,7 +83,7 @@ param(
     [bool]$Deallocate = $true
 )
 
-$VERSION = "3.9.1"
+$VERSION = "3.9.2"
 $script:DoNotStart = $false
 
 # Define function to check current time against specified range
