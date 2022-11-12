@@ -1,3 +1,6 @@
+## 3.9.2 2022 12th of November
+- 3.9.1 was broken for date entry, thanks to MadPB for pointing this out.
+
 ## 3.9.1 2022 7th of November
 - Compensate for when conversion to UTC ends up on wrong day. Thanks to sivagithub25 for pointing this out.
 
