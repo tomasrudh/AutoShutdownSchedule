@@ -489,7 +489,7 @@ try {
             continue
         }
 
-        $Result = ValidateScheduleList $schedule
+        $Result = ValidateScheduleList $($schedule -replace '\s','')
         if ($Result -ne 'OK') {
             Write-Error "[$($vm.Name)]: $Result. Skipping this VM."
             continue
